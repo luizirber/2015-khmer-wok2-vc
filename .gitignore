@@ -1,0 +1,9 @@
+*.fa
+*~
+simple-genome-reads.ct
+simple-genome-reads.fa.keep
+simple-genome-reads.fa.keep.abundfilt
+simple-genome-reads.fa.keep.abundfilt.keep
+simple-genome-reads.graph
+simple-genome-reads.mut
+variants.txt
