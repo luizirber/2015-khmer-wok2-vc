@@ -46,22 +46,11 @@ ecoli-patched.align.out: ecoli.dn.k21.kh ecoli-patched.fa
 galGal4.fa.gz:
 	wget -SNc ftp://hgdownload.cse.ucsc.edu/goldenPath/galGal4/bigZips/$(@F)
 
-###############################
+galGal4.fixed.fa.gz: galGal4.fa.gz
+	python fix_reference.py $< $@
 
-galGal4.fa.gz.keep.gz: galGal4.fa.gz
-	normalize-by-median.py -C 1 -k 21 -x 7e9 -N 4 -R $@.info $<
-	gzip $(<).keep
-
-galGal4.dn.k21.kh: galGal4.fa.gz.keep.gz
+galGal4.fixed.k21.kh: galGal4.fixed.fa.gz
 	load-into-counting.py -k 21 -x 7e9 $@ $<
 
-galGal4.dn.align.out: galGal4.dn.k21.kh $(MOLECULO_READS)/LR6000017-DNA_A01-LRAAA-1_LongRead.fastq.gz
-	$(GRAPHALIGN)/find-variant-by-align-long.py $^ --variants-out variants-galGal4-dn.txt > $@
-
-###############################
-
-galGal4.k21.kh: galGal4.fa.gz
-	load-into-counting.py -k 21 -x 7e9 $@ $<
-
-galGal4.align.out: galGal4.k21.kh $(MOLECULO_READS)/LR6000017-DNA_A01-LRAAA-1_LongRead.fastq.gz
-	$(GRAPHALIGN)/find-variant-by-align-long.py $^ --variants-out variants-galGal4.txt > $@
+galGal4.fixed.align.out: galGal4.fixed.k21.kh $(MOLECULO_READS)/LR6000017-DNA_A01-LRAAA-1_LongRead.fastq.gz
+	$(GRAPHALIGN)/find-variant-by-align-long.py $^ --variants-out variants-galGal4-fixed.txt > $@
