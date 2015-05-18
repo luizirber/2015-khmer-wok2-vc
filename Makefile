@@ -49,8 +49,60 @@ galGal4.fa.gz:
 galGal4.fixed.fa.gz: galGal4.fa.gz
 	python fix_reference.py $< $@
 
+###############################
+
 galGal4.fixed.k21.kh: galGal4.fixed.fa.gz
 	load-into-counting.py -k 21 -x 7e9 $@ $<
 
 galGal4.fixed.align.out: galGal4.fixed.k21.kh $(MOLECULO_READS)/LR6000017-DNA_A01-LRAAA-1_LongRead.fastq.gz
-	$(GRAPHALIGN)/find-variant-by-align-long.py $^ --variants-out variants-galGal4-fixed.txt > $@
+	$(GRAPHALIGN)/find-variant-by-align-long.py --trusted 1 $^ --variants-out variants-galGal4-fixed.txt > $@
+
+###############################
+
+# Estimated unique kmers: 904.369.109
+moleculo.k21.kh: $(wildcard $(MOLECULO_READS)/*.fastq.gz)
+	load-into-counting.py -k 21 -N 6 -x 2e9 $@ $^
+
+moleculo.align.out: moleculo.k21.kh galGal4.fixed.fa.gz
+	$(GRAPHALIGN)/find-variant-by-align-long.py --trusted 5 $^ --variants-out variants-galGal4-fixed.txt > $@
+
+###############################
+
+moleculo.align.out.pbs:
+	JOBID=`echo make moleculo.align.out | cat header.sub - footer.sub | \
+          qsub -l walltime=30:00:00,nodes=1:ppn=1,mem=60gb -A ged -N moleculo.align -o $@ -e $@.err | cut -d"." -f1` ; \
+	while [ -n "$$(qstat -a |grep $${JOBID})" ]; do sleep 600; done
+	@grep "PBS job finished: SUCCESS" $@
+
+###############################
+
+# Estimated unique kmers: 31.029.591
+galGal4.fixed.k13.kh: galGal4.fixed.fa.gz
+	load-into-counting.py -k 13 -N 6 -x 5e7 $@ $<
+
+galGal4.fixed.k13.align.out: galGal4.fixed.k13.kh $(MOLECULO_READS)/LR6000017-DNA_A01-LRAAA-1_LongRead.fastq.gz
+	$(GRAPHALIGN)/find-variant-by-align-long.py --trusted 1 $^ --variants-out variants-galGal4-fixed.txt > $@
+
+galGal4.fixed.k13.align.out.pbs:
+	JOBID=`echo make galGal4.fixed.k13.align.out | cat header.sub - footer.sub | \
+          qsub -l walltime=60:00:00,nodes=1:ppn=1,mem=60gb -A ged -N galGal4.fixed.k13.align -o $@ -e $@.err | cut -d"." -f1` ; \
+	while [ -n "$$(qstat -a |grep $${JOBID})" ]; do sleep 600; done
+	@grep "PBS job finished: SUCCESS" $@
+
+###############################
+
+# Estimated unique kmers: 30.326.293
+moleculo.k13.kh: $(wildcard $(MOLECULO_READS)/*.fastq.gz)
+	load-into-counting.py -k 13 -N 6 -x 5e7 $@ $^
+
+moleculo.k13.align.out: moleculo.k13.kh galGal4.fixed.fa.gz
+	$(GRAPHALIGN)/find-variant-by-align-long.py --trusted 5 $^ --variants-out variants-galGal4-fixed.txt > $@
+
+moleculo.k13.align.out.pbs:
+	JOBID=`echo make moleculo.k13.align.out | cat header.sub - footer.sub | \
+          qsub -l walltime=10:00:00,nodes=1:ppn=1,mem=60gb -A ged -N moleculo.k13.align -o $@ -e $@.err | cut -d"." -f1` ; \
+	while [ -n "$$(qstat -a |grep $${JOBID})" ]; do sleep 600; done
+	@grep "PBS job finished: SUCCESS" $@
+
+.SECONDARY:
+.PRECIOUS: galGal4.fixed.align.out moleculo.align.out galGal4.fixed.k13.align.out moleculo.k13.align.out
